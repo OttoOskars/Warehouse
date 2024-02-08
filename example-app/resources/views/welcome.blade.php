@@ -1,6 +1,6 @@
 <!doctype html>
 <head>
-    <title>Supreme Barnacle</title>
+    <title>Warehouse</title>
 
     @vite(['resources/scss/index.scss', 'resources/js/app.js'])
 </head>

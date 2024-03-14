@@ -6,13 +6,13 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use Exception;
+use Closure;
 
 class AdminController extends Controller
 {
     public function registerAdmin(Request $request)
     {
         try {
-            // Validate the incoming request
             $validatedData = $request->validate([
                 'name' => 'required|string',
                 'last_name' => 'required|string',
@@ -20,26 +20,21 @@ class AdminController extends Controller
                 'password' => 'required|string',
             ]);
 
-            // Retrieve the admin role
             $adminRole = Role::where('name', 'admin')->first();
             if (!$adminRole) {
                 return response()->json(['error' => 'Admin role not found.'], 500);
             }
 
-            // Create a new user with admin role
             $user = new User();
             $user->name = $validatedData['name'];
             $user->last_name = $validatedData['last_name'];
             $user->email = $validatedData['email'];
             $user->password = bcrypt($validatedData['password']);
-            $user->role_id = 1; // Assign the role ID to the user
+            $user->role_id = 1;
             $user->save();
 
-            // Optionally, return a response indicating success
-            // After saving the admin user
             return response()->json(['message' => 'Admin registered successfully', 'name' => $user->name]);
         } catch (Exception $e) {
-            // Handle exceptions
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -47,7 +42,6 @@ class AdminController extends Controller
     public function login(Request $request)
     {
         try {
-            // Validate the incoming request
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required|string',
@@ -55,12 +49,14 @@ class AdminController extends Controller
 
             $credentials = $request->only('email', 'password');
 
-            // Attempt to authenticate the user
             if (auth()->attempt($credentials)) {
-                // Authentication passed, user is admin
-                return response()->json(['message' => 'Admin login successful', 'name' => auth()->user()->name]);
+                $user = auth()->user();
+                return response()->json([
+                    'message' => 'Login successful', 
+                    'name' => $user->name, 
+                    'role' => $user->role_id,
+                ]);
             } else {
-                // Authentication failed
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
         } catch (Exception $e) {
@@ -68,4 +64,88 @@ class AdminController extends Controller
         }
     }
 
+    public function createUser(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|string',
+                'last_name' => 'required|string',
+                'email' => 'required|email|unique:users',
+                'password' => 'required|string',
+                'role' => 'required|integer',
+            ]);
+
+            $user = new User();
+            $user->name = $validatedData['name'];
+            $user->last_name = $validatedData['last_name'];
+            $user->email = $validatedData['email'];
+            $user->password = bcrypt($validatedData['password']);
+            $user->role_id = $validatedData['role'];
+            $user->save();
+
+            return response()->json(['message' => 'User created successfully', 'name' => $user->name]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function handle($request, Closure $next)
+    {
+        if (auth()->user()->role_id == 2) {
+            return redirect('worker-dashboard');
+        } elseif (auth()->user()->role_id == 3) {
+            return redirect('organizer-dashboard');
+        }
+
+        return $next($request);
+    }
+
+    public function fetchUsers()
+    {
+        try {
+            $users = User::with('role')
+                        ->whereHas('role', function ($query) {
+                            $query->whereIn('name', ['worker', 'organizer']);
+                        })
+                        ->get();
+
+            $users->transform(function ($user) {
+                $user->role_name = $user->role->name;
+                return $user;
+            });
+
+            return response()->json($users);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function editUser(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $validatedData = $request->validate([
+                'name' => 'required|string',
+                'last_name' => 'required|string',
+                'email' => 'required|email|unique:users,email,' . $id,
+                'role_id' => 'required|integer',
+            ]);
+
+            $user->update($validatedData);
+            return response()->json(['message' => 'User updated successfully']);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deleteUser($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            return response()->json(['message' => 'User deleted successfully']);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

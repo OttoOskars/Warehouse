@@ -2,7 +2,14 @@
   <div class="home-container">
     <div class="top">
       <h1 class="home">Admin home</h1>
-      <button class="logout" @click="logout"><ion-icon class="arrow" name="log-out-outline"></ion-icon>Logout</button>
+      <div class="nav-buttons">
+        <button class="nav-button" @click="goToStorage">Storage</button>
+        <button class="nav-button" @click="goToProducts">Products</button>
+        <button class="nav-button" @click="goToOrders">Orders</button>
+        <button class="nav-button" @click="goToReports">Reports</button>
+        <button class="nav-button" @click="goToManufacturer">Manufacturer</button>
+        <button class="logout" @click="logout"><ion-icon class="arrow" name="log-out-outline"></ion-icon>Logout</button>
+      </div>
     </div>
   
     <div class="main">
@@ -117,6 +124,21 @@
       this.fetchUsers();
     },
     methods: {
+      goToStorage() {
+        this.$router.push({ name: 'Storage' });
+      },
+      goToProducts() {
+        this.$router.push({ name: 'Products' });
+      },
+      goToOrders() {
+        this.$router.push({ name: 'Orders' });
+      },
+      goToReports() {
+        this.$router.push({ name: 'Reports' });
+      },
+      goToManufacturer() {
+        this.$router.push({ name: 'Manufacturer' });
+      },
       clearError(field) {
         this.errors[field] = '';
       },
@@ -231,20 +253,43 @@
       // .home{
       //   justify-content: flex-start;
       // }
-      .logout{
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        padding: 10px 20px;
-        margin-bottom: 20px;
-        width: 150px;
-        height: 50px;
-        font-size: 16px;
-        //margin-right: 100px;
-        cursor: pointer;
-        &:hover{
-          background-color: #0056b3;
+      .nav-buttons{
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+        .nav-button{
+          background-color: white;
+          color: black;
+          border: none;
+          text-decoration: underline;
+          //border-radius: 6px;
+          padding: 10px 20px;
+          margin-bottom: 20px;
+          width: 150px;
+          height: 50px;
+          font-size: 16px;
+          //margin-right: 100px;
+          cursor: pointer;
+          // &:hover{
+          //   background-color: ;
+          // }
+        }
+        // justify-content: space-between;
+        .logout{
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 20px;
+          margin-bottom: 20px;
+          width: 150px;
+          height: 50px;
+          font-size: 16px;
+          //margin-right: 100px;
+          cursor: pointer;
+          &:hover{
+            background-color: #0056b3;
+          }
         }
       }
     }

@@ -12,4 +12,5 @@ Route::post('/admin/create-user', [AdminController::class, 'createUser']);
 Route::get('/admin/users', [AdminController::class, 'fetchUsers']);
 Route::put('/admin/users/{id}', [AdminController::class, 'editUser']);
 Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser']);
-
+Route::post('/products', [AdminController::class, 'store']);
+Route::post('/manufacturers', [AdminController::class, 'addManufacturer']);

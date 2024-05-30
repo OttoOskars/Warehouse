@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Product;
+use App\Models\Manufacturer;
 use Exception;
 use Closure;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
@@ -163,5 +166,41 @@ class AdminController extends Controller
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'price' => 'required|integer',
+            'manufacturer_id' => 'required|exists:manufacturer,manufacturer_id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 400);
+        }
+
+        $product = Product::create($request->all());
+
+        return response()->json($product, 201);
+    }
+
+    public function addManufacturer(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'contact' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 400);
+        }
+
+        $manufacturer = Manufacturer::create($request->all());
+
+        return response()->json($manufacturer, 201);
     }
 }

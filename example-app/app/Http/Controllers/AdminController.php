@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Role;
 use Exception;
 use Closure;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -14,10 +15,10 @@ class AdminController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'name' => 'required|string',
-                'last_name' => 'required|string',
+                'name' => 'required|string|regex:/^\S*$/',
+                'last_name' => 'required|string|regex:/^\S*$/',
                 'email' => 'required|email|unique:users',
-                'password' => 'required|string',
+                'password' => 'required|string|min:8',
             ]);
 
             $adminRole = Role::where('name', 'admin')->first();
@@ -34,6 +35,8 @@ class AdminController extends Controller
             $user->save();
 
             return response()->json(['message' => 'Admin registered successfully', 'name' => $user->name]);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->validator->errors()], 422);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -57,7 +60,12 @@ class AdminController extends Controller
                     'role' => $user->role_id,
                 ]);
             } else {
-                return response()->json(['error' => 'Invalid credentials'], 401);
+                $user = User::where('email', $request->email)->first();
+                if (!$user) {
+                    return response()->json(['error' => 'Invalid email'], 401);
+                } else {
+                    return response()->json(['error' => 'Invalid password'], 401);
+                }
             }
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -68,10 +76,10 @@ class AdminController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'name' => 'required|string',
-                'last_name' => 'required|string',
+                'name' => 'required|string|regex:/^\S*$/',
+                'last_name' => 'required|string|regex:/^\S*$/',
                 'email' => 'required|email|unique:users',
-                'password' => 'required|string',
+                'password' => 'required|string|min:8',
                 'role' => 'required|integer',
             ]);
 
@@ -84,6 +92,8 @@ class AdminController extends Controller
             $user->save();
 
             return response()->json(['message' => 'User created successfully', 'name' => $user->name]);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => $e->validator->errors()], 422);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -141,7 +151,13 @@ class AdminController extends Controller
     public function deleteUser($id)
     {
         try {
-            $user = User::findOrFail($id);
+            // Check if the user exists
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['error' => 'User not found'], 404);
+            }
+            
+            // Delete the user
             $user->delete();
             return response()->json(['message' => 'User deleted successfully']);
         } catch (Exception $e) {

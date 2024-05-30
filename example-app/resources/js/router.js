@@ -39,11 +39,13 @@ router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const isAuthenticated = store.state.isAuthenticated;
 
-  if (requiresAuth && !isAuthenticated) {
-      next({ name: 'Login', query: { redirect: to.fullPath } });
+  if (!isAuthenticated && to.path !== '/register' && to.path !== '/login') {
+    next('/register');
+  } else if (requiresAuth && !isAuthenticated) {
+    next('/login');
   } else {
-      next();
+    next();
   }
 });
 
-export default router
+export default router;

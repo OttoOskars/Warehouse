@@ -7,10 +7,13 @@ use App\Models\User;
 use App\Models\Role;
 use App\Models\Product;
 use App\Models\Manufacturer;
+use App\Models\Storage;
+use App\Models\Order;
 use Exception;
 use Closure;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -168,7 +171,7 @@ class AdminController extends Controller
         }
     }
 
-    public function store(Request $request)
+    public function addProduct(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -202,5 +205,77 @@ class AdminController extends Controller
         $manufacturer = Manufacturer::create($request->all());
 
         return response()->json($manufacturer, 201);
+    }
+
+    public function addStorage(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'description' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 400);
+        }
+
+        $storage = Storage::create($request->all());
+
+        return response()->json($storage, 201);
+    }
+
+    public function addOrder(Request $request)
+    {
+
+        if (!Auth::check()) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+    
+        // Retrieve the authenticated user's ID
+        $userId = Auth::id();
+
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|exists:product,product_id',
+            'storage_id' => 'required|exists:storage,storage_id',
+            'quantity' => 'required|integer|min:1',
+            'status_id' => 'required|integer|in:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 400);
+        }
+
+        $order = Order::create([
+            'user_id' => $userId, // Associate the order with the authenticated user
+            'product_id' => $request->input('product_id'),
+            'storage_id' => $request->input('storage_id'),
+            'quantity' => $request->input('quantity'),
+            'status_id' => $request->input('status_id'),
+            // You may need to calculate the total_price based on the product and quantity
+        ]);
+
+        return response()->json($order, 201);
+    }
+
+    public function getProduct($id)
+    {
+        $product = Product::find($id);
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        return response()->json($product);
+    }
+
+    public function getStorage($id)
+    {
+        $storage = Storage::find($id);
+
+        if (!$storage) {
+            return response()->json(['message' => 'Storage not found'], 404);
+        }
+
+        return response()->json($storage);
     }
 }

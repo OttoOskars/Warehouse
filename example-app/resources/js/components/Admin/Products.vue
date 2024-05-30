@@ -48,11 +48,11 @@
                     this.product = { name: '', description: '', price: 0, manufacturer_id: '' };
                 } catch (error) {
                     if (error.response) {
-                    this.error = error.response.data.message || 'Failed to add product';
+                        this.error = error.response.data.message || 'Failed to add product';
                     } else if (error.request) {
-                    this.error = 'No response from server';
+                        this.error = 'No response from server';
                     } else {
-                    this.error = error.message;
+                        this.error = error.message;
                     }
                 }
             }

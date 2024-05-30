@@ -433,6 +433,10 @@
   @media (max-width: 768px) {
     .home-container {
       padding: 10px;
+      .main{
+        display: flex;
+        flex-direction: column;
+      }
     }
     .user-form {
       width: 100%;

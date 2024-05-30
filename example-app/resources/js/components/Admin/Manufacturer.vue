@@ -48,11 +48,11 @@
                     this.manufacturer = { name: '', description: '', location: '', contact: '' };
                 } catch (error) {
                     if (error.response) {
-                    this.error = error.response.data.message || 'Failed to add manufacturer';
+                        this.error = error.response.data.message || 'Failed to add manufacturer';
                     } else if (error.request) {
-                    this.error = 'No response from server';
+                        this.error = 'No response from server';
                     } else {
-                    this.error = error.message;
+                        this.error = error.message;
                     }
                 }
             }
